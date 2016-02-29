@@ -23,17 +23,15 @@ public class MonitoringTools {
         this.out = out;
     }
 
-    public void showData() {
-        List<VirtualMachineDescriptor> vms = VirtualMachine.list();
-        for (VirtualMachineDescriptor virtualMachineDescriptor : vms) {
-            out.println("============ Show JVM: pid = " + virtualMachineDescriptor.id() + " "
-                            + virtualMachineDescriptor.displayName());
+    public void foreachVM(VMRunnable vmr) {
+        for (VirtualMachineDescriptor virtualMachineDescriptor : VirtualMachine.list()) {
+            vmr.preAttach(virtualMachineDescriptor);
             VirtualMachine virtualMachine = attach(virtualMachineDescriptor);
-            if (virtualMachine != null) {
-                out.println("     Java version = " + readSystemProperty(virtualMachine, "java.version"));
-                out.println("     Java command = " + readSystemProperty(virtualMachine, "sun.java.command"));
+            if (null != virtualMachine) {
+                vmr.attached(virtualMachine);
             }
             detachSilently(virtualMachine);
+            vmr.postDetatch(virtualMachineDescriptor);
         }
     }
 
@@ -51,16 +49,9 @@ public class MonitoringTools {
         return null;
     }
 
-    public String readSystemProperty(VirtualMachine virtualMachine, String propertyName) {
-        String propertyValue = null;
-        try {
-            Properties systemProperties = virtualMachine.getSystemProperties();
-            propertyValue = systemProperties.getProperty(propertyName);
-        } catch (IOException e) {
-            out.println("Reading system property failed");
-            e.printStackTrace(out);
-        }
-        return propertyValue;
+    public static String readSystemProperty(VirtualMachine virtualMachine, String propertyName) throws IOException {
+        Properties systemProperties = virtualMachine.getSystemProperties();
+        return systemProperties.getProperty(propertyName);
     }
 
     public void detachSilently(VirtualMachine virtualMachine) {

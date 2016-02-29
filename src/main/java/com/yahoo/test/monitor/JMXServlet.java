@@ -3,6 +3,8 @@
 package com.yahoo.test.monitor;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -14,7 +16,9 @@ public class JMXServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        MonitoringTools mt = new MonitoringTools(response.getOutputStream());
-        mt.showData();
+        OutputStream out = response.getOutputStream();
+        ShowDataRunnable sdr = new ShowDataRunnable(out);
+        MonitoringTools mt = new MonitoringTools(out);
+        mt.foreachVM(sdr);
     }
 }
