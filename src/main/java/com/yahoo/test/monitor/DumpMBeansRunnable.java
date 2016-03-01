@@ -60,13 +60,26 @@ public class DumpMBeansRunnable implements VMRunnable {
             // now we can finally iterate.
             Set<ObjectName> queryNames = mBeanServerConnection.queryNames(null, null);
             for (ObjectName on : queryNames) {
-                out.println(on);
-
                 try {
                     MBeanInfo mBeanInfo = mBeanServerConnection.getMBeanInfo(on);
                     if (null != mBeanInfo) {
                         for (MBeanAttributeInfo a : mBeanInfo.getAttributes()) {
-                            out.println(a.getName());
+                            switch (a.getType()) {
+                                case "boolean":
+                                case "byte":
+                                case "char":
+                                case "int":
+                                case "long":
+                                case "double":
+                                case "float":
+                                    out.println("{");
+                                    out.println("\"id\" : \"" + a.getName() + "\"");
+                                    out.println("\"objectName\" : \"" + on.getCanonicalName() + "\"");
+                                    out.println("\"attribute\" : \"" + a.getName() + "\"");
+                                    out.println("\"metricType\" : \"Rate\"");
+                                    out.println("},");
+                                    break;
+                            }
                         }
                     }
                 } catch (InstanceNotFoundException | IntrospectionException | ReflectionException e) {
