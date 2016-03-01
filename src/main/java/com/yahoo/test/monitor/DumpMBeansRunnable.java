@@ -5,8 +5,13 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Set;
 
+import javax.management.InstanceNotFoundException;
+import javax.management.IntrospectionException;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanInfo;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
@@ -56,6 +61,17 @@ public class DumpMBeansRunnable implements VMRunnable {
             Set<ObjectName> queryNames = mBeanServerConnection.queryNames(null, null);
             for (ObjectName on : queryNames) {
                 out.println(on);
+
+                try {
+                    MBeanInfo mBeanInfo = mBeanServerConnection.getMBeanInfo(on);
+                    if (null != mBeanInfo) {
+                        for (MBeanAttributeInfo a : mBeanInfo.getAttributes()) {
+                            out.println(a.getName());
+                        }
+                    }
+                } catch (InstanceNotFoundException | IntrospectionException | ReflectionException e) {
+                    e.printStackTrace(out);
+                }
             }
         } catch (IOException e) {
             out.println("Reading system property failed");
