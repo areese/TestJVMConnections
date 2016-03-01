@@ -4,7 +4,6 @@ package com.yahoo.test.monitor;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
